@@ -181,6 +181,126 @@ MyModule
             <li class="fragment">API claire et facile</li>
         </ul>
     </section>
+    <section>
+        <h2>Loop</h2>
+    </section>
+    <section>
+<pre>
+<code data-trim>
+namespace MyModule\Loop;
+
+use Thelia\Core\Template\Element\BaseLoop;
+use Thelia\Core\Template\Element\LoopResult;
+use Thelia\Core\Template\Element\LoopResultRow;
+use Thelia\Core\Template\Loop\Argument\ArgumentCollection;
+use Thelia\Core\Template\Loop\Argument\Argument;
+use Thelia\Model\CustomerQuery;
+use Thelia\Model\ConfigQuery;
+
+class MyLoop extends BaseLoop
+{
+    /**
+     * @return ArgumentCollection
+     */
+    protected function getArgDefinitions()
+    {
+        return new ArgumentCollection(
+            Argument::createBooleanTypeArgument('current', 1),
+            Argument::createIntListTypeArgument('id'),
+            new Argument(
+                'ref',
+                new TypeCollection(
+                    new Type\AlphaNumStringListType()
+                )
+            ),
+            Argument::createBooleanTypeArgument('reseller'),
+            Argument::createIntTypeArgument('sponsor')
+        );
+    }
+
+    /**
+    * @param $pagination
+    *
+    * @return \Thelia\Core\Template\Element\LoopResult
+    */
+    public function exec(&$pagination)
+    {
+        $search = CustomerQuery::create();
+
+
+        if (null !== $id) {
+            $search->filterById($id, Criteria::IN);
+        }
+        ...
+        $customers = $this->search($search, $pagination);
+
+        $loopResult = new LoopResult();
+
+        foreach ($customers as $customer) {
+
+            if ($this->not_empty && $customer->countAllProducts() == 0) continue;
+
+            $loopResultRow = new LoopResultRow();
+            $loopResultRow->set("ID", $customer->getId());
+            ...
+            $loopResultRow->set("DISCOUNT", $customer->getDiscount());
+
+            $loopResult->addRow($loopResultRow);
+        }
+
+        return $loopResult;
+    }
+}
+</code>
+    </pre>
+    </section>
+    <section>
+        <h2>Action</h2>
+        <p>Observer Design Pattern</p>
+    </section>
+    <section>
+        <h2>Form</h2>
+    </section>
+    <section>
+        <pre>
+            <code data-trim>
+namespace Thelia\Form;
+
+
+use Symfony\Component\Validator\Constraints\Length;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\Choice;
+
+class AdminLogin extends BaseForm {
+
+    protected function buildForm()
+    {
+        $this->formBuilder
+            ->add("username", "text", array(
+                "constraints" => array(
+                    new NotBlank(),
+                    new Length(array("min" => 3))
+                )
+            ))
+            ->add("password", "password", array(
+                "constraints" => array(
+                    new NotBlank()
+                )
+            ))
+            ->add("remember_me", "checkbox", array(
+                'value' => 'yes'
+            ))
+        ;
+    }
+
+    public function getName()
+    {
+        return "thelia_admin_login";
+    }
+}
+            </code>
+        </pre>
+    </section>
 </div>
 
 </div>
